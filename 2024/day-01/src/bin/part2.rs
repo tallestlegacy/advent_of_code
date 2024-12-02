@@ -1,3 +1,5 @@
+use std::iter::Enumerate;
+
 fn main() {
     let input = include_str!("./input.txt");
 
@@ -20,13 +22,31 @@ fn main() {
         }
     }
 
-    // sort the lists
+    // sort both lists
     left_inputs.sort();
     right_inputs.sort();
 
-    // find the difference
-    for i in 0..left_inputs.len() {
-        accumulator += (left_inputs[i] - right_inputs[i]).abs()
+    // get unique left values
+    let mut unique_left_inputs: Vec<i32> = Vec::new();
+    for i in left_inputs {
+        if unique_left_inputs.contains(&i) {
+            continue;
+        } else {
+            unique_left_inputs.push(i);
+        }
+    }
+
+    // find the frequency of each
+
+    for number in unique_left_inputs {
+        let mut frequency = 0;
+        for check_number in right_inputs.iter() {
+            if number == *check_number {
+                frequency += 1
+            }
+        }
+
+        accumulator += frequency * number
     }
 
     print!("Accumulator : {accumulator}");
