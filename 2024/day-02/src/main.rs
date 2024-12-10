@@ -1,5 +1,3 @@
-use std::usize;
-
 const MIN_DIFFERENCE: i32 = 1;
 const MAX_DIFFERENCE: i32 = 3;
 
@@ -7,6 +5,7 @@ fn main() {
     let input = include_str!("./input.txt");
     let mut reports: Vec<Vec<i32>> = Vec::new();
     let mut accumulator = 0;
+    let mut accumulator_neg = 0;
 
     for (index, line) in input.split("\n").into_iter().enumerate() {
         if line.is_empty() {
@@ -30,45 +29,44 @@ fn main() {
     }
 
     // analyze each line
-    for (reportIndex, report) in reports.iter().enumerate() {
+    for (_index, report) in reports.iter().enumerate() {
         match is_stable(report.to_vec()) {
             Ok(_) => accumulator += 1,
+            Err(_) => accumulator_neg += 1,
+        }
+    }
 
-            Err(index) => {
-                // try recovery
-                let mut tmp_record_1 = report.clone();
-                let mut tmp_record_2 = report.clone();
-                tmp_record_2.remove(index);
-                tmp_record_1.remove(index + 1);
+    println!("Part 1");
+    println!("Accumulator : {accumulator}::{accumulator_neg}");
 
-                // recovery phase 1
-                match is_stable(tmp_record_1.clone().to_vec()) {
-                    Ok(_) => {
-                        accumulator += 1;
-                        println!("Phase 1");
-                    }
-
-                    // recovery phase 2
-                    Err(_) => match is_stable(tmp_record_2.clone().to_vec()) {
+    // recursive checks : honestly not my best work but it works
+    for (_index, report) in reports.iter().enumerate() {
+        match is_stable(report.to_vec()) {
+            Ok(_) => {}
+            Err(_) => {
+                // check every index
+                for i in 0..report.len() {
+                    let mut recovery_array = report.clone();
+                    recovery_array.remove(i);
+                    match is_stable(recovery_array) {
                         Ok(_) => {
                             accumulator += 1;
-                            println!("Phase 2");
+                            break;
                         }
-                        Err(_) => {
-                            println!("Line {}.\t\t{:?}", reportIndex + 1, report);
-                        }
-                    },
+                        Err(_) => {}
+                    }
                 }
             }
         }
     }
 
+    println!("Part 2");
     println!("Accumulator : {accumulator}");
 }
 
 fn is_stable(report: Vec<i32>) -> Result<(), usize> {
     let is_increasing = report[0] < report[1];
-    let mut stable = true;
+    let mut stable: bool;
     let mut i: usize = 0;
 
     // check the report values
